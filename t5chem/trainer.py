@@ -1,7 +1,9 @@
 import os
+import os.path as osp
+import json
 import shutil
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import torch
 from torch.utils.data import DataLoader, Dataset
@@ -15,9 +17,14 @@ class EarlyStopTrainer(Trainer):
     """
     Save model weights based on validation error.
     """
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, t5chem_args, **kwargs) -> None:
         super().__init__(**kwargs)
         self.min_eval_loss: float = float('inf')
+
+        self.t5chem_args = t5chem_args
+        # write the json file
+        with open(osp.join(self.t5chem_args.output_dir, "t5chem_args.json"), "w") as f:
+            json.dump(vars(self.t5chem_args), f, indent=2)
 
     def evaluate(
         self,

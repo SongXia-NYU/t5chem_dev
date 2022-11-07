@@ -1,9 +1,10 @@
+import copy
 import importlib
 import os
 import re
 from abc import ABC, abstractmethod
 from collections import Counter
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Set, Union
 
 import torch
 from torchtext.vocab import Vocab
@@ -43,22 +44,12 @@ class MolTokenizer(ABC, PreTrainedTokenizer):
             eos_token=eos_token,
             mask_token=mask_token,
             **kwargs)
-
+        self.max_size = max_size
         task_prefixs = TASK_PREFIX+task_prefixs
-        self.create_vocab(
-            vocab_file=vocab_file, 
-            source_files=source_files, 
-            vocab_size=max_size-len(task_prefixs)
-            )
-        if self.vocab:
-            extra_to_add: int = max_size - len(self.vocab)
-            cur_added_len: int = len(task_prefixs) + 9 # placeholder for smiles tokens
-            for i in range(cur_added_len, extra_to_add):
-                task_prefixs.append('<extra_task_{}>'.format(str(i)))
-            self.add_tokens(['<extra_token_'+str(i)+'>' for i in range(9)]+task_prefixs+['>'], special_tokens=True)
-            self.unique_no_split_tokens = sorted(
-                set(self.unique_no_split_tokens).union(set(self.all_special_tokens))
-            )
+        self.task_prefixs = copy.copy(task_prefixs)
+        self.vocab_file = vocab_file
+        self.source_files = source_files
+        self.init_vocab_size = max_size-len(task_prefixs)
 
     @property
     def vocab_size(self) -> int:
@@ -100,6 +91,13 @@ class MolTokenizer(ABC, PreTrainedTokenizer):
             vocab_size: (:obj:`int`, `optional`, defaults to `None`):
                 The final vocabulary size. `None` for no limit.
         """
+        if vocab_file is None:
+            vocab_file = self.vocab_file
+        if source_files is None:
+            source_files = self.source_files
+        if vocab_size is None:
+            vocab_size = self.init_vocab_size
+
         if vocab_file:
             if not os.path.isfile(vocab_file):
                 raise ValueError(
@@ -121,7 +119,9 @@ class MolTokenizer(ABC, PreTrainedTokenizer):
             for i, source_file in enumerate(source_files):
                 counter[i] = Counter()
                 with open(source_file) as rf:
-                    for line in tqdm(rf, desc='Generating {}'.format(source_file)):
+                    num_lines = sum(1 for line in rf)
+                with open(source_file) as rf:
+                    for line in tqdm(rf, desc='Generating {}'.format(source_file), total=num_lines):
                         try:
                             items: List[str] = self._tokenize(line.strip())
                             counter[i].update(items)
@@ -132,6 +132,16 @@ class MolTokenizer(ABC, PreTrainedTokenizer):
             self.vocab = self.merge_vocabs([vocabs[i] for i in range(len(source_files))], vocab_size=vocab_size)
         else:
             self.vocab = None
+
+        if self.vocab:
+            extra_to_add: int = self.max_size - len(self.vocab)
+            cur_added_len: int = len(self.task_prefixs) + 9 # placeholder for smiles tokens
+            for i in range(cur_added_len, extra_to_add):
+                self.task_prefixs.append('<extra_task_{}>'.format(str(i)))
+            self.add_tokens(['<extra_token_'+str(i)+'>' for i in range(9)]+self.task_prefixs+['>'], special_tokens=True)
+            self.unique_no_split_tokens = sorted(
+                set(self.unique_no_split_tokens).union(set(self.all_special_tokens))
+            )
 
     def get_vocab(self) -> Dict[str, int]:
         vocab = {self.convert_ids_to_tokens(i): i for i in range(self.vocab_size)}
@@ -222,6 +232,37 @@ class SimpleTokenizer(MolTokenizer):
 
     def _tokenize(self, text: str, **kwargs) -> List[str]: 
         return list(text)
+
+class ModToekenizer(MolTokenizer):
+    def __init__(self, vocab_file, max_size=100, **kwargs) -> None:
+        super().__init__(vocab_file=vocab_file, max_size=max_size, **kwargs)
+        self.unique_no_split_tokens.append("<mod>")
+        self.unique_no_split_tokens.append("</mod>")
+
+    def _tokenize(self, text: str, **kwargs) -> List[str]:
+        return list(text)
+        return recursive_tokenize(text, copy.copy(self.mod_tokens), lambda s: list(s))
+        
+
+def recursive_tokenize(current_s: str, remaining_tokens: set, default_token_fn):
+    if len(remaining_tokens) == 0:
+        return default_token_fn(current_s)
+    
+    current_token = remaining_tokens.pop()
+    out = []
+
+    s_split = re.split(current_token, current_s)
+    # print(s_split)
+    if re.match(current_token, s_split[0]):
+        out += [s_split[0]]
+        s_split = s_split[1:]
+    for i, ss in enumerate(s_split):
+        if i%2 == 1:
+            out += [ss]
+        else:
+            out += recursive_tokenize(ss, copy.copy(remaining_tokens), default_token_fn)
+    return out
+
 
 class AtomTokenizer(MolTokenizer):
     r"""

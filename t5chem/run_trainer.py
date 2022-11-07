@@ -10,13 +10,13 @@ import torch
 from transformers import (DataCollatorForLanguageModeling, T5Config,
                           T5ForConditionalGeneration, TrainingArguments)
 
-from .data_utils import (AccuracyMetrics, CalMSELoss, LineByLineTextDataset,
+from data_utils import (AccuracyMetrics, CalMSELoss, LineByLineTextDataset,
                         T5ChemTasks, TaskPrefixDataset, TaskSettings,
                         data_collator)
-from .model import T5ForProperty
-from .mol_tokenizers import (AtomTokenizer, MolTokenizer, SelfiesTokenizer,
+from model import T5ForProperty
+from mol_tokenizers import (AtomTokenizer, MolTokenizer, SelfiesTokenizer,
                             SimpleTokenizer)
-from .trainer import EarlyStopTrainer
+from trainer import EarlyStopTrainer
 
 tokenizer_map: Dict[str, MolTokenizer] = {
     'simple': SimpleTokenizer,  # type: ignore
@@ -59,6 +59,16 @@ def add_args(parser):
         "--tokenizer",
         default='',
         help="Tokenizer to use. ('simple', 'atom', 'selfies')",
+    )
+    parser.add_argument(
+        "--vocab_name",
+        default="simple",
+        help="Help is for losers. --S.X.",
+    )
+    parser.add_argument(
+        "--add_tokens",
+        action="append",
+        help="Help is for losers. --S.X.",
     )
     parser.add_argument(
         "--random_seed",
@@ -144,8 +154,9 @@ def train(args):
             args.tokenizer = 'simple'
         assert args.tokenizer in ('simple', 'atom', 'selfies'), \
             "{} tokenizer is not supported."
-        vocab_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vocab/'+args.tokenizer+'.pt')
+        vocab_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vocab/'+args.vocab_name+'.pt')
         tokenizer = tokenizer_map[args.tokenizer](vocab_file=vocab_path)
+        tokenizer.create_vocab()
         config = T5Config(
             vocab_size=len(tokenizer),
             pad_token_id=tokenizer.pad_token_id,
@@ -162,6 +173,10 @@ def train(args):
             model = T5ForConditionalGeneration(config)
         else:
             model = T5ForProperty(config, head_type=task.output_layer, num_classes=args.num_classes)
+    
+    if args.add_tokens is not None:
+        tokenizer.add_tokens(args.add_tokens)
+        model.resize_token_embeddings(len(tokenizer))
 
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer.save_vocabulary(os.path.join(args.output_dir, 'vocab.pt'))
@@ -236,12 +251,13 @@ def train(args):
         logging_steps=args.log_step,
         per_device_eval_batch_size=args.batch_size,
         save_steps=10000,
-        save_total_limit=5,
+        save_total_limit=1,
         learning_rate=args.init_lr,
         prediction_loss_only=(compute_metrics is None),
     )
 
     trainer = EarlyStopTrainer(
+        t5chem_args = args,
         model=model,
         args=training_args,
         data_collator=data_collator_padded,
