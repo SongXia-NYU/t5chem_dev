@@ -1,0 +1,1 @@
+singularity exec --nv --overlay /scratch/projects/yzlab/yw5806/multistep/t5chem.ext3 /scratch/work/public/singularity/cuda11.6.124-cudnn8.4.0.27-devel-ubuntu20.04.4.sif /bin/bash 

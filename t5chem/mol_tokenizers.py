@@ -245,6 +245,10 @@ class ModToekenizer(MolTokenizer):
         
 
 def recursive_tokenize(current_s: str, remaining_tokens: set, default_token_fn):
+    """
+    This is my unsuccessful attempt to write a custom tokenizer method.
+    Safe to ignore.
+    """
     if len(remaining_tokens) == 0:
         return default_token_fn(current_s)
     
