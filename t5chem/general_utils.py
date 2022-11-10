@@ -14,7 +14,7 @@ def add_args(parser: argparse.ArgumentParser):
     parser.add_argument("--batch_size", default=32, type=int, help="Batch size for training and validation.")
     parser.add_argument("--init_lr", default=5e-4, type=float, help="The initial leanring rate for model training")
     parser.add_argument("--num_classes", type=int, help="The number of classes in classification task. Only used when task_type is Classification")
-    parser.add_argument("--vocab_name", default="simple", help="Help is for losers. --S.X.")
+    parser.add_argument("--vocab_name", default="simple")
     parser.add_argument("--add_tokens", action="append")
     parser.add_argument("--type_path", default="train")
     parser.add_argument("--comment", help="Yes, this argument is required. Take some notes here so you can remember what you were doing 2 months later.")

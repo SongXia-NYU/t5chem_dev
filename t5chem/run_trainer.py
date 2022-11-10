@@ -55,9 +55,12 @@ def train(args):
                 args.pretrained_model, 
                 head_type = task.output_layer,
             )
-        if not hasattr(model.config, 'tokenizer'):
-            logging.warning("No tokenizer type detected, will use SimpleTokenizer as default")
-        tokenizer_type = getattr(model.config, "tokenizer", 'simple')
+        if not args.tokenizer:
+            if not hasattr(model.config, 'tokenizer'):
+                logging.warning("No tokenizer type detected, will use SimpleTokenizer as default")
+            tokenizer_type = getattr(model.config, "tokenizer", 'simple')
+        else:
+            tokenizer_type = args.tokenizer
         vocab_path = os.path.join(args.pretrained_model, 'vocab.pt')
         if not os.path.isfile(vocab_path):
             vocab_path = args.vocab
@@ -66,6 +69,7 @@ def train(args):
                         "Can't find a vocabulary file at path '{}'.".format(args.pretrained_model)
                     )
         tokenizer = tokenizer_map[tokenizer_type](vocab_file=vocab_path)
+        tokenizer.create_vocab()
         model.config.tokenizer = tokenizer_type # type: ignore
         model.config.task_type = args.task_type # type: ignore
     else:
