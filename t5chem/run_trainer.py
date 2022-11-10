@@ -8,6 +8,7 @@ from typing import Dict
 
 import numpy as np
 import torch
+from torch.utils.data import Subset
 from transformers import (DataCollatorForLanguageModeling, T5Config,
                           T5ForConditionalGeneration, TrainingArguments)
 
@@ -167,24 +168,27 @@ def train(args):
         assert eval_strategy == "no"
         assert eval_dataset is None
         assert args.val_size is None
+
         split_f = osp.join(args.data_dir, args.split_file)
         split = torch.load(split_f)
-        train_dataset = train_dataset[split["train_index"]]
-        eval_dataset = train_dataset[split["val_index"]]
+        eval_dataset = Subset(train_dataset, torch.as_tensor(val_index))
+        train_dataset = Subset(train_dataset, torch.as_tensor(train_index))
         eval_strategy = "steps"
     
     if args.val_size is not None:
+        # split during runtime
         assert args.split_file is None
         assert eval_dataset is None
-        assert args.val_size is None
+        assert eval_strategy == "no"
+
         try:
             val_size = int(args.val_size)
         except ValueError:
             val_size = float(args.val_size)
         ds_size = len(train_dataset)
         train_index, val_index = train_test_split(np.arange(ds_size), test_size=val_size, random_state=args.random_seed)
-        train_dataset = train_dataset[train_index]
-        eval_dataset = train_dataset[val_index]
+        eval_dataset = Subset(train_dataset, torch.as_tensor(val_index))
+        train_dataset = Subset(train_dataset, torch.as_tensor(train_index))
         eval_strategy = "steps"
 
     if task.output_layer == 'regression':
