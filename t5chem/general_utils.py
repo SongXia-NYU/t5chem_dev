@@ -1,4 +1,5 @@
 import argparse
+import os
 
 
 def add_args(parser: argparse.ArgumentParser):
@@ -36,6 +37,15 @@ def smart_parse_args():
         args.config_file = config_args.config_file
     print(vars(args))
     return args
+
+def solv_num_workers():
+    try:
+        n_cpu_avail = len(os.sched_getaffinity(0))
+    except AttributeError:
+        n_cpu_avail = None
+    n_cpu = os.cpu_count()
+    num_workers = n_cpu_avail if n_cpu_avail is not None else n_cpu
+    return n_cpu_avail, n_cpu, num_workers
 
 if __name__ == "__main__":
     smart_parse_args()

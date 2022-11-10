@@ -18,7 +18,7 @@ from data_utils import (AccuracyMetrics, CalMSELoss, LineByLineTextDataset,
 from model import T5ForProperty
 from mol_tokenizers import (AtomTokenizer, MolTokenizer, PLTokenizer, SelfiesTokenizer,
                             SimpleTokenizer)
-from t5chem.general_utils import smart_parse_args
+from t5chem.general_utils import smart_parse_args, solv_num_workers
 from trainer import EarlyStopTrainer
 from sklearn.model_selection import train_test_split
 
@@ -203,6 +203,8 @@ def train(args):
     else:
         compute_metrics = AccuracyMetrics
 
+    n_cpu_avail, n_cpu, num_workers = solv_num_workers()
+
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         overwrite_output_dir=True,
@@ -216,6 +218,7 @@ def train(args):
         save_total_limit=1,
         learning_rate=args.init_lr,
         prediction_loss_only=(compute_metrics is None),
+        dataloader_num_workers=num_workers
     )
 
     trainer = EarlyStopTrainer(
