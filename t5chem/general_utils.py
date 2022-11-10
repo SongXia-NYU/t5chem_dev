@@ -18,6 +18,9 @@ def add_args(parser: argparse.ArgumentParser):
     parser.add_argument("--add_tokens", action="append")
     parser.add_argument("--type_path", default="train")
     parser.add_argument("--comment", help="Yes, this argument is required. Take some notes here so you can remember what you were doing 2 months later.")
+    parser.add_argument("--split_file", default=None, help="relative path to data_dir")
+    # yes, dtype is str. It will be converted during runtime
+    parser.add_argument("--val_size", default=None, type=str, help="Supports both int and float number")
 
 def smart_parse_args():
     config_parser = argparse.ArgumentParser()

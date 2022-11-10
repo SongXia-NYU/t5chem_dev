@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import os.path as osp
 import random
 from functools import partial
 from typing import Dict
@@ -18,6 +19,7 @@ from mol_tokenizers import (AtomTokenizer, MolTokenizer, PLTokenizer, SelfiesTok
                             SimpleTokenizer)
 from t5chem.general_utils import smart_parse_args
 from trainer import EarlyStopTrainer
+from sklearn.model_selection import train_test_split
 
 tokenizer_map: Dict[str, MolTokenizer] = {
     'simple': SimpleTokenizer,  # type: ignore
@@ -159,6 +161,31 @@ def train(args):
         else:
             eval_strategy = "no"
             eval_dataset = None
+
+    if args.split_file is not None:
+        # use a split file instead of physically split datasets into training and evaluation set
+        assert eval_strategy == "no"
+        assert eval_dataset is None
+        assert args.val_size is None
+        split_f = osp.join(args.data_dir, args.split_file)
+        split = torch.load(split_f)
+        train_dataset = train_dataset[split["train_index"]]
+        eval_dataset = train_dataset[split["val_index"]]
+        eval_strategy = "steps"
+    
+    if args.val_size is not None:
+        assert args.split_file is None
+        assert eval_dataset is None
+        assert args.val_size is None
+        try:
+            val_size = int(args.val_size)
+        except ValueError:
+            val_size = float(args.val_size)
+        ds_size = len(train_dataset)
+        train_index, val_index = train_test_split(np.arange(ds_size), test_size=val_size, random_state=args.random_seed)
+        train_dataset = train_dataset[train_index]
+        eval_dataset = train_dataset[val_index]
+        eval_strategy = "steps"
 
     if task.output_layer == 'regression':
         compute_metrics = CalMSELoss
