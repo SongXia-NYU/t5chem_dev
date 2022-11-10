@@ -26,85 +26,20 @@ tokenizer_map: Dict[str, MolTokenizer] = {
 
 
 def add_args(parser):
-    parser.add_argument(
-        "--data_dir",
-        type=str,
-        required=True,
-        help="The input data dir. Should contain train.source, train.target, val.source, val.target, test.source, test.target",
-    )
-    parser.add_argument(
-        "--output_dir",
-        type=str,
-        required=True,
-        help="The output directory where the model predictions and checkpoints will be written.",
-    )
-    parser.add_argument(
-        "--task_type",
-        type=str,
-        required=True,
-        help="Task type to use. ('product', 'reactants', 'reagents', \
-            'regression', 'classification', 'pretrain', 'mixed')",
-    )
-    parser.add_argument(
-        "--pretrain",
-        default='',
-        help="Path to a pretrained model. If not given, we will train from scratch",
-    )
-    parser.add_argument(
-        "--vocab",
-        default='',
-        help="Vocabulary file to load.",
-    )
-    parser.add_argument(
-        "--tokenizer",
-        default='',
-        help="Tokenizer to use. ('simple', 'atom', 'selfies')",
-    )
-    parser.add_argument(
-        "--vocab_name",
-        default="simple",
-        help="Help is for losers. --S.X.",
-    )
-    parser.add_argument(
-        "--add_tokens",
-        action="append",
-        help="Help is for losers. --S.X.",
-    )
-    parser.add_argument(
-        "--random_seed",
-        default=8570,
-        type=int,
-        help="The random seed for model initialization",
-    )
-    parser.add_argument(
-        "--num_epoch",
-        default=100,
-        type=int,
-        help="Number of epochs for training.",
-    )
-    parser.add_argument(
-        "--log_step",
-        default=5000,
-        type=int,
-        help="Logging after every log_step",
-    )
-    parser.add_argument(
-        "--batch_size",
-        default=32,
-        type=int,
-        help="Batch size for training and validation.",
-    )
-    parser.add_argument(
-        "--init_lr",
-        default=5e-4,
-        type=float,
-        help="The initial leanring rate for model training",
-    )
-    parser.add_argument(
-        "--num_classes",
-        type=int,
-        help="The number of classes in classification task. Only used when task_type is Classification",
-    )
+    parser.add_argument("--data_dir", type=str, required=True, help="root data dir")
+    parser.add_argument("--output_dir", type=str, required=True, help="The output directory where the model predictions and checkpoints will be written.")
+    parser.add_argument("--task_type", type=str, required=True, help="Task type to use. ('product', 'reactants', 'reagents', 'regression', 'classification', 'pretrain', 'mixed')")
+    parser.add_argument("--pretrain", default='', help="Path to a pretrained model. If not given, we will train from scratch")
+    parser.add_argument("--vocab", default='', help="Vocabulary file to load.")
+    parser.add_argument("--tokenizer", default='', help="Tokenizer to use. ('simple', 'atom', 'selfies')")
+    parser.add_argument("--vocab_name", default="simple", help="Help is for losers. --S.X.")
+    parser.add_argument("--add_tokens", action="append")
+    parser.add_argument("--random_seed", default=8570, type=int, help="The random seed for model initialization")
+    parser.add_argument("--num_epoch", default=100, type=int, help="Number of epochs for training.")
+    parser.add_argument("--log_step", default=5000, type=int, help="Logging after every log_step")
+    parser.add_argument("--batch_size", default=32, type=int, help="Batch size for training and validation.")
+    parser.add_argument("--init_lr", default=5e-4, type=float, help="The initial leanring rate for model training")
+    parser.add_argument("--num_classes", type=int, help="The number of classes in classification task. Only used when task_type is Classification")
 
 
 def train(args):
