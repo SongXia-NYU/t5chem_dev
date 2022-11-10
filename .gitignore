@@ -2,6 +2,7 @@
 /slurms
 /out
 t5chem/vocab/*.pt
+config-*.txt
 
 *.py[cod]
 
