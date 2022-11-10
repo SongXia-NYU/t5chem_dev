@@ -14,32 +14,17 @@ from data_utils import (AccuracyMetrics, CalMSELoss, LineByLineTextDataset,
                         T5ChemTasks, TaskPrefixDataset, TaskSettings,
                         data_collator)
 from model import T5ForProperty
-from mol_tokenizers import (AtomTokenizer, MolTokenizer, SelfiesTokenizer,
+from mol_tokenizers import (AtomTokenizer, MolTokenizer, PLTokenizer, SelfiesTokenizer,
                             SimpleTokenizer)
+from t5chem.general_utils import smart_parse_args
 from trainer import EarlyStopTrainer
 
 tokenizer_map: Dict[str, MolTokenizer] = {
     'simple': SimpleTokenizer,  # type: ignore
     'atom': AtomTokenizer,  # type: ignore
     'selfies': SelfiesTokenizer,    # type: ignore
+    'pl': PLTokenizer
 }
-
-
-def add_args(parser):
-    parser.add_argument("--data_dir", type=str, required=True, help="root data dir")
-    parser.add_argument("--output_dir", type=str, required=True, help="The output directory where the model predictions and checkpoints will be written.")
-    parser.add_argument("--task_type", type=str, required=True, help="Task type to use. ('product', 'reactants', 'reagents', 'regression', 'classification', 'pretrain', 'mixed')")
-    parser.add_argument("--pretrain", default='', help="Path to a pretrained model. If not given, we will train from scratch")
-    parser.add_argument("--vocab", default='', help="Vocabulary file to load.")
-    parser.add_argument("--tokenizer", default='', help="Tokenizer to use. ('simple', 'atom', 'selfies')")
-    parser.add_argument("--vocab_name", default="simple", help="Help is for losers. --S.X.")
-    parser.add_argument("--add_tokens", action="append")
-    parser.add_argument("--random_seed", default=8570, type=int, help="The random seed for model initialization")
-    parser.add_argument("--num_epoch", default=100, type=int, help="Number of epochs for training.")
-    parser.add_argument("--log_step", default=5000, type=int, help="Logging after every log_step")
-    parser.add_argument("--batch_size", default=32, type=int, help="Batch size for training and validation.")
-    parser.add_argument("--init_lr", default=5e-4, type=float, help="The initial leanring rate for model training")
-    parser.add_argument("--num_classes", type=int, help="The number of classes in classification task. Only used when task_type is Classification")
 
 
 def train(args):
@@ -59,23 +44,23 @@ def train(args):
             format(tuple(T5ChemTasks.keys()), args.task_type)
     task: TaskSettings = T5ChemTasks[args.task_type]
 
-    if args.pretrain: # retrieve information from pretrained model
+    if args.pretrained_model: # retrieve information from pretrained model
         if task.output_layer == 'seq2seq':
-            model = T5ForConditionalGeneration.from_pretrained(args.pretrain)
+            model = T5ForConditionalGeneration.from_pretrained(args.pretrained_model)
         else:
             model = T5ForProperty.from_pretrained(
-                args.pretrain, 
+                args.pretrained_model, 
                 head_type = task.output_layer,
             )
         if not hasattr(model.config, 'tokenizer'):
             logging.warning("No tokenizer type detected, will use SimpleTokenizer as default")
         tokenizer_type = getattr(model.config, "tokenizer", 'simple')
-        vocab_path = os.path.join(args.pretrain, 'vocab.pt')
+        vocab_path = os.path.join(args.pretrained_model, 'vocab.pt')
         if not os.path.isfile(vocab_path):
             vocab_path = args.vocab
             if not vocab_path:
                 raise ValueError(
-                        "Can't find a vocabulary file at path '{}'.".format(args.pretrain)
+                        "Can't find a vocabulary file at path '{}'.".format(args.pretrained_model)
                     )
         tokenizer = tokenizer_map[tokenizer_type](vocab_file=vocab_path)
         model.config.tokenizer = tokenizer_type # type: ignore
@@ -87,8 +72,7 @@ def train(args):
                 as default for this training."
             logging.warning(warn_msg)
             args.tokenizer = 'simple'
-        assert args.tokenizer in ('simple', 'atom', 'selfies'), \
-            "{} tokenizer is not supported."
+        assert args.tokenizer in tokenizer_map.keys(), "{} tokenizer is not supported."
         vocab_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vocab/'+args.vocab_name+'.pt')
         tokenizer = tokenizer_map[args.tokenizer](vocab_file=vocab_path)
         tokenizer.create_vocab()
@@ -109,14 +93,22 @@ def train(args):
         else:
             model = T5ForProperty(config, head_type=task.output_layer, num_classes=args.num_classes)
     
-    if args.add_tokens is not None:
-        tokenizer.add_tokens(args.add_tokens)
+    if args.tokenizer == "pl":
+        added_tokens = ["<mod>", "</mod>"]
+        aa_tokens = ["A", "G", "I", "L", "M", "P", "V", "F", "W", "N",
+                        "C", "Q", "S", "T", "Y", "D", "E", "R", "H", "K"]
+        # two extra capping AAs, B for ACE and J for NME
+        capping_aa_tokens = ["B", "J"]
+        added_tokens.extend(["<PROT>"+aa for aa in aa_tokens])
+        added_tokens.extend(["<PROT>"+aa for aa in capping_aa_tokens])
+        assert len(set(added_tokens)) == len(added_tokens), added_tokens
+        tokenizer.add_tokens(added_tokens)
         model.resize_token_embeddings(len(tokenizer))
 
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer.save_vocabulary(os.path.join(args.output_dir, 'vocab.pt'))
     if args.task_type == 'pretrain':
-        dataset = LineByLineTextDataset(
+        train_dataset = LineByLineTextDataset(
             tokenizer=tokenizer, 
             file_path=os.path.join(args.data_dir,'train.txt'),
             block_size=task.max_source_length,
@@ -126,14 +118,14 @@ def train(args):
             tokenizer=tokenizer, mlm=True, mlm_probability=0.15
         )
     else:
-        dataset = TaskPrefixDataset(
+        train_dataset = TaskPrefixDataset(
             tokenizer, 
             data_dir=args.data_dir,
             prefix=task.prefix,
             max_source_length=task.max_source_length,
             max_target_length=task.max_target_length,
             separate_vocab=(task.output_layer != 'seq2seq'),
-            type_path="train",
+            type_path=args.type_path,
         )
         data_collator_padded = partial(
             data_collator, pad_token_id=tokenizer.pad_token_id)
@@ -142,7 +134,7 @@ def train(args):
         do_eval = os.path.exists(os.path.join(args.data_dir, 'val.txt'))
         if do_eval:
             eval_strategy = "steps"
-            eval_iter = LineByLineTextDataset(
+            eval_dataset = LineByLineTextDataset(
                 tokenizer=tokenizer, 
                 file_path=os.path.join(args.data_dir,'val.txt'),
                 block_size=task.max_source_length,
@@ -150,12 +142,12 @@ def train(args):
             )
         else:
             eval_strategy = "no"
-            eval_iter = None
+            eval_dataset = None
     else:
         do_eval = os.path.exists(os.path.join(args.data_dir, 'val.source'))
         if do_eval:
             eval_strategy = "steps"
-            eval_iter = TaskPrefixDataset(
+            eval_dataset = TaskPrefixDataset(
                 tokenizer, 
                 data_dir=args.data_dir,
                 prefix=task.prefix,
@@ -166,7 +158,7 @@ def train(args):
             )
         else:
             eval_strategy = "no"
-            eval_iter = None
+            eval_dataset = None
 
     if task.output_layer == 'regression':
         compute_metrics = CalMSELoss
@@ -196,8 +188,8 @@ def train(args):
         model=model,
         args=training_args,
         data_collator=data_collator_padded,
-        train_dataset=dataset,
-        eval_dataset=eval_iter,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
         compute_metrics=compute_metrics,
     )
 
@@ -208,7 +200,5 @@ def train(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    add_args(parser)
-    args = parser.parse_args()
+    args = smart_parse_args()
     train(args)

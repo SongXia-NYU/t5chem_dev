@@ -22,8 +22,13 @@ class EarlyStopTrainer(Trainer):
         self.min_eval_loss: float = float('inf')
 
         self.t5chem_args = t5chem_args
-        # write the json file
-        with open(osp.join(self.t5chem_args.output_dir, "t5chem_args.json"), "w") as f:
+        self.run_dir = self.t5chem_args.output_dir
+        
+        # if run is initialized by a config file, save it to the running dir
+        if hasattr(t5chem_args, "config_file"):
+            shutil.copyfile(t5chem_args.config_file, osp.join(self.run_dir, osp.basename(t5chem_args.config_file)))
+        # write the runtime config into json file
+        with open(osp.join(self.run_dir, "t5chem_args.json"), "w") as f:
             json.dump(vars(self.t5chem_args), f, indent=2)
 
     def evaluate(

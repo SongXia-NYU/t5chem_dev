@@ -10,9 +10,10 @@
 #SBATCH --mail-user=songxia23@gmail.com
 
 ROOT=$SCRATCH/scripts/t5chem_dev
+CONFIG_FILE=$1
 
 module purge
-singularity exec --nv --overlay /scratch/projects/yzlab/yw5806/multistep/t5chem.ext3 \
+singularity exec --nv --overlay /home/sx801/conda_envs/t5chem.sqf \
         /scratch/work/public/singularity/cuda11.6.124-cudnn8.4.0.27-devel-ubuntu20.04.4.sif \
-        /bin/bash -c "source /ext3/env.sh; cd $ROOT/t5chem; python $ROOT/t5chem/run_trainer.py --data_dir $ROOT/data/smiles_mod_train_0 --output_dir $ROOT/out/exp_t5_003 --task_type pretrain --num_epoch 8 --vocab_name simple --add_tokens '<mod>' --add_tokens '</mod>' "
+        /bin/bash -c "source /ext3/env.sh; export PYTHONPATH=$ROOT:$PYTHONPATH; python $ROOT/t5chem/run_trainer.py --config_file $CONFIG_FILE  "
 
