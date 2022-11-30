@@ -3,7 +3,7 @@
 /out
 t5chem/vocab/*.pt
 config-*.txt
-
+/train_0
 *.py[cod]
 
 # C extensions
@@ -43,4 +43,7 @@ nosetests.xml
 .pydevproject
 .pytest_cache
 
+#Overlays and sifs
+*.ext3
+*.sif
 # exclude data from source control by default, will compress and publish later when ready
