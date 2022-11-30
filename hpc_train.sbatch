@@ -9,11 +9,9 @@
 #SBATCH --mail-type=END,FAIL,TIME_LIMIT
 #SBATCH --mail-user=songxia23@gmail.com
 
-ROOT=$SCRATCH/scripts/t5chem_dev
 CONFIG_FILE=$1
 
 module purge
-singularity exec --nv --overlay /home/sx801/conda_envs/t5chem.sqf \
-        /scratch/work/public/singularity/cuda11.6.124-cudnn8.4.0.27-devel-ubuntu20.04.4.sif \
-        /bin/bash -c "source /ext3/env.sh; export PYTHONPATH=$ROOT:$PYTHONPATH; python $ROOT/t5chem/run_trainer.py --config_file $CONFIG_FILE  "
+singularity exec --nv $SCRATCH/t5chem_dev_song/t5chem/t5chem_1.0.sif \
+        /bin/bash -c "python t5chem/run_trainer.py --config_file $CONFIG_FILE  "
 
