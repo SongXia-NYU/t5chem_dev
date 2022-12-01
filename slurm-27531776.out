@@ -1,4 +1,0 @@
-  File "t5chem/run_trainer.py", line 48
-    task: TaskSettings = T5ChemTasks[args.task_type]
-        ^
-SyntaxError: invalid syntax

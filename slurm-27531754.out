@@ -1,4 +1,0 @@
-  File "t5chem/run_trainer.py", line 25
-    tokenizer_map: Dict[str, MolTokenizer] = {
-                 ^
-SyntaxError: invalid syntax

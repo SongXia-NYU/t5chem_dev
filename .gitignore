@@ -4,6 +4,7 @@
 t5chem/vocab/*.pt
 config-*.txt
 /train_0
+/reproduce
 *.py[cod]
 
 # C extensions
