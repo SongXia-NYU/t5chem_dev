@@ -7,11 +7,11 @@
 #SBATCH --time=12:00:00
 #SBATCH --mem=6GB
 #SBATCH --mail-type=END,FAIL,TIME_LIMIT
-#SBATCH --mail-user=songxia23@gmail.com
 
 CONFIG_FILE=$1
 
 module purge
-singularity exec --nv $SCRATCH/t5chem_dev_song/t5chem/t5chem_1.0.sif \
+singularity exec --nv --overlay $SCRATCH/t5chem_dev_song/t5chem_dev/t5chem_dev.ext3 \
+	/scratch/work/public/singularity/cuda11.0-cudnn8-devel-ubuntu18.04.sif \
         /bin/bash -c "python t5chem/run_trainer.py --config_file $CONFIG_FILE  "
 

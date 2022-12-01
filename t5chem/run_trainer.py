@@ -18,7 +18,7 @@ from data_utils import (AccuracyMetrics, CalMSELoss, LineByLineTextDataset,
 from model import T5ForProperty
 from mol_tokenizers import (AtomTokenizer, MolTokenizer, PLTokenizer, SelfiesTokenizer,
                             SimpleTokenizer)
-from t5chem.general_utils import smart_parse_args, solv_num_workers
+from general_utils import smart_parse_args, solv_num_workers
 from trainer import EarlyStopTrainer
 from sklearn.model_selection import train_test_split
 
