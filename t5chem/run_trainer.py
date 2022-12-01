@@ -22,7 +22,7 @@ from general_utils import smart_parse_args, solv_num_workers
 from trainer import EarlyStopTrainer
 from sklearn.model_selection import train_test_split
 
-tokenizer_map: Dict[str, MolTokenizer] = {
+tokenizer_map : Dict[str, MolTokenizer] = {
     'simple': SimpleTokenizer,  # type: ignore
     'atom': AtomTokenizer,  # type: ignore
     'selfies': SelfiesTokenizer,    # type: ignore

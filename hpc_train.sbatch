@@ -11,7 +11,7 @@
 CONFIG_FILE=$1
 
 module purge
-singularity exec --nv --overlay $SCRATCH/t5chem_dev_song/t5chem_dev/t5chem_dev.ext3 \
+singularity exec --nv --overlay $SCRATCH/t5chem_dev_song/t5chem_dev/t5chem_dev.ext3:ro \
 	/scratch/work/public/singularity/cuda11.0-cudnn8-devel-ubuntu18.04.sif \
-        /bin/bash -c "python t5chem/run_trainer.py --config_file $CONFIG_FILE  "
+        /bin/bash -c "source /ext3/env.sh; python t5chem/run_trainer.py --config_file $CONFIG_FILE  "
 
