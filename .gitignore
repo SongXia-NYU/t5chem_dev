@@ -6,7 +6,7 @@ config-*.txt
 /train_0
 /reproduce
 *.py[cod]
-
+slurm*
 # C extensions
 *.so
 
