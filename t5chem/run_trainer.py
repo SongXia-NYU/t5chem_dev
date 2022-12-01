@@ -9,7 +9,7 @@ from typing import Dict
 import numpy as np
 import torch
 from torch.utils.data import Subset
-from transformers import (Trainer,DataCollatorForLanguageModeling, T5Config,
+from transformers import (Seq2SeqTrainer,Seq2SeqTrainingArguments,DataCollatorForLanguageModeling, T5Config,
                           T5ForConditionalGeneration, TrainingArguments)
 
 from data_utils import (AccuracyMetrics, CalMSELoss, LineByLineTextDataset,
@@ -205,7 +205,7 @@ def train(args):
 
     n_cpu_avail, n_cpu, num_workers = solv_num_workers()
 
-    training_args = TrainingArguments(
+    training_args = Seq2SeqTrainingArguments(
         output_dir=args.output_dir,
         overwrite_output_dir=True,
         do_train=True,
@@ -218,11 +218,12 @@ def train(args):
         save_total_limit=1,
         learning_rate=args.init_lr,
         prediction_loss_only=(compute_metrics is None),
-        dataloader_num_workers=num_workers
+        dataloader_num_workers=num_workers,
+        predict_with_generate=True,
     )
 
-    trainer = T5ChemTrainer(
-        t5chem_args = args,
+    trainer = Seq2SeqTrainer(
+        #t5chem_args = args,
         model=model,
         args=training_args,
         data_collator=data_collator_padded,
