@@ -114,86 +114,89 @@ def train(args):
 
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer.save_vocabulary(os.path.join(args.output_dir, 'vocab.pt'))
-    if args.task_type == 'pretrain':
-        train_dataset = LineByLineTextDataset(
-            tokenizer=tokenizer, 
-            file_path=os.path.join(args.data_dir,'train.txt'),
-            block_size=task.max_source_length,
-            prefix=task.prefix,
-        )
-        data_collator_padded = DataCollatorForLanguageModeling(
-            tokenizer=tokenizer, mlm=True, mlm_probability=0.15
-        )
-    else:
-        train_dataset = TaskPrefixDataset(
-            tokenizer, 
-            data_dir=args.data_dir,
-            prefix=task.prefix,
-            max_source_length=task.max_source_length,
-            max_target_length=task.max_target_length,
-            separate_vocab=(task.output_layer != 'seq2seq'),
-            type_path=args.type_path,
-        )
-        data_collator_padded = partial(
-            data_collator, pad_token_id=tokenizer.pad_token_id)
-
-    if args.task_type == 'pretrain':
-        do_eval = os.path.exists(os.path.join(args.data_dir, 'val.txt'))
-        if do_eval:
-            eval_strategy = "steps"
-            eval_dataset = LineByLineTextDataset(
-                tokenizer=tokenizer, 
-                file_path=os.path.join(args.data_dir,'val.txt'),
+    def legacy_dataset_handling(tokenizer,task,args)
+        if args.task_type == 'pretrain':
+            train_dataset = LineByLineTextDataset(
+                tokenizer=tokenizer,
+                file_path=os.path.join(args.data_dir,'train.txt'),
                 block_size=task.max_source_length,
                 prefix=task.prefix,
             )
+            data_collator_padded = DataCollatorForLanguageModeling(
+                tokenizer=tokenizer, mlm=True, mlm_probability=0.15
+            )
         else:
-            eval_strategy = "no"
-            eval_dataset = None
-    else:
-        do_eval = os.path.exists(os.path.join(args.data_dir, 'val.source'))
-        if do_eval:
-            eval_strategy = "steps"
-            eval_dataset = TaskPrefixDataset(
-                tokenizer, 
+            train_dataset = TaskPrefixDataset(
+                tokenizer,
                 data_dir=args.data_dir,
                 prefix=task.prefix,
                 max_source_length=task.max_source_length,
                 max_target_length=task.max_target_length,
                 separate_vocab=(task.output_layer != 'seq2seq'),
-                type_path="val",
+                type_path=args.type_path,
             )
+            data_collator_padded = partial(
+                data_collator, pad_token_id=tokenizer.pad_token_id)
+
+        if args.task_type == 'pretrain':
+            do_eval = os.path.exists(os.path.join(args.data_dir, 'val.txt'))
+            if do_eval:
+                eval_strategy = "steps"
+                eval_dataset = LineByLineTextDataset(
+                    tokenizer=tokenizer,
+                    file_path=os.path.join(args.data_dir,'val.txt'),
+                    block_size=task.max_source_length,
+                    prefix=task.prefix,
+                )
+            else:
+                eval_strategy = "no"
+                eval_dataset = None
         else:
-            eval_strategy = "no"
-            eval_dataset = None
+            do_eval = os.path.exists(os.path.join(args.data_dir, 'val.source'))
+            if do_eval:
+                eval_strategy = "steps"
+                eval_dataset = TaskPrefixDataset(
+                    tokenizer,
+                    data_dir=args.data_dir,
+                    prefix=task.prefix,
+                    max_source_length=task.max_source_length,
+                    max_target_length=task.max_target_length,
+                    separate_vocab=(task.output_layer != 'seq2seq'),
+                    type_path="val",
+                )
+            else:
+                eval_strategy = "no"
+                eval_dataset = None
 
-    if args.split_file is not None:
-        # use a split file instead of physically split datasets into training and evaluation set
-        assert eval_strategy == "no"
-        assert eval_dataset is None
-        assert args.val_size is None
+        if args.split_file is not None:
+            # use a split file instead of physically split datasets into training and evaluation set
+            assert eval_strategy == "no"
+            assert eval_dataset is None
+            assert args.val_size is None
 
-        split_f = osp.join(args.data_dir, args.split_file)
-        split = torch.load(split_f)
-        eval_dataset = Subset(train_dataset, torch.as_tensor(val_index))
-        train_dataset = Subset(train_dataset, torch.as_tensor(train_index))
-        eval_strategy = "steps"
-    
-    if args.val_size is not None:
-        # split during runtime
-        assert args.split_file is None
-        assert eval_dataset is None
-        assert eval_strategy == "no"
+            split_f = osp.join(args.data_dir, args.split_file)
+            split = torch.load(split_f)
+            eval_dataset = Subset(train_dataset, torch.as_tensor(val_index))
+            train_dataset = Subset(train_dataset, torch.as_tensor(train_index))
+            eval_strategy = "steps"
 
-        try:
-            val_size = int(args.val_size)
-        except ValueError:
-            val_size = float(args.val_size)
-        ds_size = len(train_dataset)
-        train_index, val_index = train_test_split(np.arange(ds_size), test_size=val_size, random_state=args.random_seed)
-        eval_dataset = Subset(train_dataset, torch.as_tensor(val_index))
-        train_dataset = Subset(train_dataset, torch.as_tensor(train_index))
-        eval_strategy = "steps"
+        if args.val_size is not None:
+            # split during runtime
+            assert args.split_file is None
+            assert eval_dataset is None
+            assert eval_strategy == "no"
+
+            try:
+                val_size = int(args.val_size)
+            except ValueError:
+                val_size = float(args.val_size)
+            ds_size = len(train_dataset)
+            train_index, val_index = train_test_split(np.arange(ds_size), test_size=val_size, random_state=args.random_seed)
+            eval_dataset = Subset(train_dataset, torch.as_tensor(val_index))
+            train_dataset = Subset(train_dataset, torch.as_tensor(train_index))
+            eval_strategy = "steps"
+        return train_dataset,eval_dataset,eval_strategy, data_collator_padded,split
+    train_dataset,eval_dataset,eval_strategy, data_collator_padded,split = legacy_dataset_handling(tokenizer,task,args)
 
     if task.output_layer == 'regression':
         compute_metrics = CalMSELoss
