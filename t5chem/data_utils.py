@@ -126,6 +126,8 @@ class TaskPrefixDataset(Dataset):
         return len(ex['input_ids'])
 
 
+#Need to understand this code
+#TODO move away from this
 def data_collator(batch: List[BatchEncoding], pad_token_id: int) -> Dict[str, torch.Tensor]:
     whole_batch: Dict[str, torch.Tensor] = {}
     ex: BatchEncoding = batch[0]
