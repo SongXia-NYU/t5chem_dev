@@ -23,14 +23,14 @@ def collect_files(suffix, data_dir):
 def get_dataset(tokenizer, task, args):
     dataloading = legacy_dataset_handling if args.legacy_data_handling else dataset_handling
     print("Using legacy data handling: {}".format(args.legacy_data_handling))
-    train_dataset, eval_dataset, eval_strategy, data_collator_padded, split = dataloading(tokenizer, task, args)
+    train_dataset, eval_dataset, eval_strategy, data_collator_padded, split = dataloading(tokenizer,task, args.task_type)
     print("dataloading complete")
     #return None,None,None,None,None
     return train_dataset, eval_dataset, eval_strategy, data_collator_padded, split
 
-def dataset_handling(tokenizer, task, args):
-    if args.task_type == 'pretrain':
-        files = collect_files(".txt", args.data_dir)
+def dataset_handling(tokenizer, task, task_type, data_dir):
+    if task_type == 'pretrain':
+        files = collect_files(".txt", data_dir)
         datasets = []
         for data in files:
             datasets.append(LineByLineTextDataset(
@@ -170,3 +170,6 @@ def legacy_dataset_handling(tokenizer, task, args):
         train_dataset = Subset(train_dataset, torch.as_tensor(train_index))
         eval_strategy = "steps"
     return train_dataset, eval_dataset, eval_strategy, data_collator_padded, split
+
+
+
