@@ -20,15 +20,9 @@ def collect_files(suffix, data_dir):
 
 # Entry Point
 # Here to keep t5chems legacy behavior.
-def get_dataset(tokenizer, task, args):
-    dataloading = legacy_dataset_handling if args.legacy_data_handling else dataset_handling
-    print("Using legacy data handling: {}".format(args.legacy_data_handling))
-    train_dataset, eval_dataset, eval_strategy, data_collator_padded, split = dataloading(tokenizer,task, args.task_type)
-    print("dataloading complete")
-    #return None,None,None,None,None
-    return train_dataset, eval_dataset, eval_strategy, data_collator_padded, split
 
-def dataset_handling(tokenizer, task, task_type, data_dir):
+
+def dataset_handling(tokenizer, task, task_type, data_dir, random_seed):
     if task_type == 'pretrain':
         files = collect_files(".txt", data_dir)
         datasets = []
@@ -46,7 +40,7 @@ def dataset_handling(tokenizer, task, task_type, data_dir):
         if "val" in files:
             do_eval = True
         if do_eval:
-            train_dataset, eval_dataset = train_test_split(concat_dataset, test_size=0.1, random_state=args.random_seed)
+            train_dataset, eval_dataset = train_test_split(concat_dataset, test_size=0.1, random_state=random_seed)
             eval_strategy = "steps"
         else:
             train_dataset = concat_dataset
@@ -169,6 +163,13 @@ def legacy_dataset_handling(tokenizer, task, args):
         eval_dataset = Subset(train_dataset, torch.as_tensor(val_index))
         train_dataset = Subset(train_dataset, torch.as_tensor(train_index))
         eval_strategy = "steps"
+    return train_dataset, eval_dataset, eval_strategy, data_collator_padded, split
+
+def get_dataset(tokenizer, task, args):
+    dataloading = legacy_dataset_handling if args.legacy_data_handling else dataset_handling
+    print("Using legacy data handling: {}".format(args.legacy_data_handling))
+    train_dataset, eval_dataset, eval_strategy, data_collator_padded, split = dataloading(tokenizer,task, args.task_type, args.data_dir, args.random_seed)
+    print("dataloading complete")
     return train_dataset, eval_dataset, eval_strategy, data_collator_padded, split
 
 
