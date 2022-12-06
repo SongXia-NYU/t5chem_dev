@@ -1,6 +1,5 @@
 import os
 from functools import partial
-from typing import List
 
 from data_utils import (LineByLineTextDataset,TaskPrefixDataset,data_collator)
 
@@ -31,11 +30,11 @@ def get_dataset(tokenizer, task, args):
 def dataset_handling(tokenizer, task, args):
     if args.task_type == 'pretrain':
         files = collect_files(".txt", args.data_dir)
-        datasets: List[LineByLineTextDataset] = []
+        datasets = []
         for data in files:
             datasets.append(LineByLineTextDataset(
                 tokenizer=tokenizer,
-                file_path=os.path.join(args.data_dir, 'train.txt'),
+                file_path=data,
                 block_size=task.max_source_length,
                 prefix=task.prefix,
             ))
