@@ -1,6 +1,6 @@
 import os
 from functools import partial
-
+import pdb
 from data_utils import (LineByLineTextDataset,TaskPrefixDataset,data_collator)
 
 import torch
@@ -11,20 +11,20 @@ from sklearn.model_selection import train_test_split
 
 
 def collect_files(suffix, data_dir):
-    files = []
+    collected_files
     for root, dirs, files in os.walk(data_dir):
         for file in files:
             if file.endswith(suffix):
-                files.append(os.path.join(root, file))
-    return files
+                collected_files.append(os.path.join(root, file))
+    return collected_files
 
 # Entry Point
 # Here to keep t5chems legacy behavior.
 
 
-def dataset_handling(tokenizer, task, task_type, data_dir, random_seed):
-    if task_type == 'pretrain':
-        files = collect_files(".txt", data_dir)
+def dataset_handling(tokenizer, task, args):
+    if args.task_type == 'pretrain':
+        files = collect_files(".txt", args.data_dir)
         datasets = []
         for data in files:
             datasets.append(LineByLineTextDataset(
@@ -40,7 +40,7 @@ def dataset_handling(tokenizer, task, task_type, data_dir, random_seed):
         if "val" in files:
             do_eval = True
         if do_eval:
-            train_dataset, eval_dataset = train_test_split(concat_dataset, test_size=0.1, random_state=random_seed)
+            train_dataset, eval_dataset = train_test_split(concat_dataset, test_size=0.1, random_state=args.random_seed)
             eval_strategy = "steps"
         else:
             train_dataset = concat_dataset
@@ -168,7 +168,8 @@ def legacy_dataset_handling(tokenizer, task, args):
 def get_dataset(tokenizer, task, args):
     dataloading = legacy_dataset_handling if args.legacy_data_handling else dataset_handling
     print("Using legacy data handling: {}".format(args.legacy_data_handling))
-    train_dataset, eval_dataset, eval_strategy, data_collator_padded, split = dataloading(tokenizer,task, args.task_type, args.data_dir, args.random_seed)
+    breakpoint()
+    train_dataset, eval_dataset, eval_strategy, data_collator_padded, split = dataloading(tokenizer,task, args)
     print("dataloading complete")
     return train_dataset, eval_dataset, eval_strategy, data_collator_padded, split
 
