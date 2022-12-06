@@ -6,6 +6,7 @@ config-*.txt
 /train_0
 /data*
 /reproduce
+/slurms
 *.py[cod]
 slurm*
 # C extensions

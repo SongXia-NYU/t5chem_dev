@@ -27,7 +27,7 @@ def add_args(parser: argparse.ArgumentParser):
     parser.add_argument("--split_file", default=None, help="relative path to data_dir")
     # yes, dtype is str. It will be converted during runtime
     parser.add_argument("--val_size", default=None, type=str, help="Supports both int and float number")
-    parser.add_argument("--legacy_data_handling", action=argparse.BooleanOptionalAction,
+    parser.add_argument("--legacy_data_handling", default=False, action="store_true",
                         help="Use legacy data handling. This is for backward compatibility. Please do not use this.")
 
 
