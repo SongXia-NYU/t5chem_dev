@@ -25,10 +25,10 @@ def get_dataset(tokenizer, task, args):
     print("Using legacy data handling: {}".format(args.legacy_data_handling))
     train_dataset, eval_dataset, eval_strategy, data_collator_padded, split = dataloading(tokenizer, task, args)
     print("dataloading complete")
-    return None,None,None,None,None
-    #return train_dataset, eval_dataset, eval_strategy, data_collator_padded, split
+    #return None,None,None,None,None
+    return train_dataset, eval_dataset, eval_strategy, data_collator_padded, split
 
-def dataset_handling(tokenizer, task, args):
+def dataset_handling(tokenizer, task, #args):
     if args.task_type == 'pretrain':
         files = collect_files(".txt", args.data_dir)
         datasets = []

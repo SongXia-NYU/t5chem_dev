@@ -5,8 +5,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=2
 #SBATCH --time=12:00:00
-#SBATCH --mem=6GB
-#SBATCH --mail-type=END,FAIL,TIME_LIMIT
+#SBATCH --mem=20GB
 
 CONFIG_FILE=$1
 
