@@ -158,5 +158,7 @@ def train(args):
 
 
 if __name__ == "__main__":
+    print("entering")
     args = smart_parse_args()
+    print("args parsed")
     train(args)
