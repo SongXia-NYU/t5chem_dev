@@ -98,6 +98,7 @@ def train(args):
             model = T5ForProperty(config, head_type=task.output_layer, num_classes=args.num_classes)
     
     if args.tokenizer == "pl":
+        print("Using PLTokenizer")
         added_tokens = ["<mod>", "</mod>"]
         aa_tokens = ["A", "G", "I", "L", "M", "P", "V", "F", "W", "N",
                         "C", "Q", "S", "T", "Y", "D", "E", "R", "H", "K"]
@@ -111,7 +112,7 @@ def train(args):
 
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer.save_vocabulary(os.path.join(args.output_dir, 'vocab.pt'))
-
+    print("getting datasets")
     train_dataset,eval_dataset,eval_strategy, data_collator_padded,split = get_dataset(tokenizer,task,args)
 
     if task.output_layer == 'regression':
