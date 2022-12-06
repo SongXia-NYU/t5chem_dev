@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 
 
 def collect_files(suffix, data_dir):
-    collected_files
+    collected_files = []
     for root, dirs, files in os.walk(data_dir):
         for file in files:
             if file.endswith(suffix):
