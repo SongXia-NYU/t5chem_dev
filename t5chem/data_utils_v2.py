@@ -28,7 +28,7 @@ def get_dataset(tokenizer, task, args):
     #return None,None,None,None,None
     return train_dataset, eval_dataset, eval_strategy, data_collator_padded, split
 
-def dataset_handling(tokenizer, task, #args):
+def dataset_handling(tokenizer, task, args):
     if args.task_type == 'pretrain':
         files = collect_files(".txt", args.data_dir)
         datasets = []
