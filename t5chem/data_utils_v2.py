@@ -10,6 +10,7 @@ from transformers import DataCollatorForLanguageModeling
 from torch.utils.data import Subset, ConcatDataset
 from sklearn.model_selection import train_test_split
 
+
 def collect_files(suffix, data_dir):
     files = []
     for root, dirs, files in os.walk(data_dir):
@@ -18,9 +19,10 @@ def collect_files(suffix, data_dir):
                 files.append(os.path.join(root, file))
     return files
 
+# Entry Point
+# Here to keep t5chems legacy behavior.
 def get_dataset(tokenizer, task, args):
     dataloading = legacy_dataset_handling if args.legacy_data_handling else dataset_handling
-
     return dataloading(tokenizer, task, args)
 
 

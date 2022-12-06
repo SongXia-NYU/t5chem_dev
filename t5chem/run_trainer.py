@@ -1,27 +1,22 @@
-import argparse
 import logging
 import os
-import os.path as osp
 import random
-from functools import partial
 from typing import Dict
 
 import numpy as np
 import torch
-from torch.utils.data import Subset
-from transformers import (Trainer,DataCollatorForLanguageModeling, T5Config,
+
+from transformers import (Trainer, T5Config,
                           T5ForConditionalGeneration, TrainingArguments)
 
-from data_utils import (AccuracyMetrics, CalMSELoss, LineByLineTextDataset,
-                        T5ChemTasks, TaskPrefixDataset, TaskSettings,
-                        data_collator)
+from data_utils import (AccuracyMetrics, CalMSELoss,
+                        T5ChemTasks, TaskSettings)
 from data_utils_v2 import get_dataset
 from model import T5ForProperty
 from mol_tokenizers import (AtomTokenizer, MolTokenizer, PLTokenizer, SelfiesTokenizer,
                             SimpleTokenizer)
 from general_utils import smart_parse_args, solv_num_workers
 from trainer import EarlyStopTrainer,T5ChemTrainer
-from sklearn.model_selection import train_test_split
 
 tokenizer_map : Dict[str, MolTokenizer] = {
     'simple': SimpleTokenizer,  # type: ignore
