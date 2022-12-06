@@ -1,6 +1,5 @@
 import os
 from functools import partial
-import pdb
 from data_utils import (LineByLineTextDataset,TaskPrefixDataset,data_collator)
 
 import torch
@@ -168,7 +167,6 @@ def legacy_dataset_handling(tokenizer, task, args):
 def get_dataset(tokenizer, task, args):
     dataloading = legacy_dataset_handling if args.legacy_data_handling else dataset_handling
     print("Using legacy data handling: {}".format(args.legacy_data_handling))
-    breakpoint()
     train_dataset, eval_dataset, eval_strategy, data_collator_padded, split = dataloading(tokenizer,task, args)
     print("dataloading complete")
     return train_dataset, eval_dataset, eval_strategy, data_collator_padded, split
