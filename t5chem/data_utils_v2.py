@@ -42,7 +42,7 @@ def dataset_handling(tokenizer, task, args):
         # Do we split by eval? If so, we need to split the dataset
         # TODO determine if this should be an argument or if we check if val is in the files. Should we always split?
         if any("val" in s for s in list(map(os.path.basename,files))):
-            train_dataset, eval_dataset = random_split(concat_dataset, get_split_size(concat_dataset,args.split_size)
+            train_dataset, eval_dataset = random_split(concat_dataset, get_split_size(concat_dataset,args.split_size))
             eval_strategy = "steps"
         else:
             train_dataset = concat_dataset
