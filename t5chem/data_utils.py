@@ -39,7 +39,7 @@ class LineByLineTextDataset(Dataset):
         block_size: int, 
         prefix: str = ''
     ) -> None:
-        #super().__init__()
+        super().__init__()
         assert os.path.isfile(file_path), f"Input file path {file_path} not found"
         
         self.prefix: str = prefix

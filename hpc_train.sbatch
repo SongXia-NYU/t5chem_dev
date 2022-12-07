@@ -3,8 +3,8 @@
 #SBATCH --job-name=t5chem_dev
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
-#SBATCH --cpus-per-task=2
-#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task=4
+#SBATCH --time=20:00:00
 #SBATCH --mem=20GB
 
 CONFIG_FILE=$1
