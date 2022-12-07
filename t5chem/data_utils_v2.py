@@ -5,7 +5,7 @@ from data_utils import (LineByLineTextDataset,TaskPrefixDataset,data_collator)
 import torch
 import numpy as np
 from transformers import DataCollatorForLanguageModeling
-from torch.utils.data import Subset, ConcatDataset
+from torch.utils.data import Subset, ConcatDataset, random_split
 from sklearn.model_selection import train_test_split
 
 
@@ -19,6 +19,11 @@ def collect_files(suffix, data_dir):
 
 # Entry Point
 # Here to keep t5chems legacy behavior.
+def get_split_size(dataset):
+    train_set_size = int(len(dataset) * 0.9)
+    valid_set_size = len(dataset) - train_set_size
+    return [train_set_size, valid_set_size]
+
 
 
 def dataset_handling(tokenizer, task, args):
@@ -36,10 +41,8 @@ def dataset_handling(tokenizer, task, args):
         do_eval = False
         # Do we split by eval? If so, we need to split the dataset
         # TODO determine if this should be an argument or if we check if val is in the files.
-        if "val" in files:
-            do_eval = True
-        if do_eval:
-            train_dataset, eval_dataset = train_test_split(concat_dataset, test_size=0.1, random_state=args.random_seed)
+        if any("val" in s for s in list(map(os.path.basename,files))):
+            train_dataset, eval_dataset = random_split(concat_dataset, get_split_size(concat_dataset))
             eval_strategy = "steps"
         else:
             train_dataset = concat_dataset
@@ -158,6 +161,7 @@ def legacy_dataset_handling(tokenizer, task, args):
         except ValueError:
             val_size = float(args.val_size)
         ds_size = len(train_dataset)
+        #TODO switch this to torch random split.
         train_index, val_index = train_test_split(np.arange(ds_size), test_size=val_size, random_state=args.random_seed)
         eval_dataset = Subset(train_dataset, torch.as_tensor(val_index))
         train_dataset = Subset(train_dataset, torch.as_tensor(train_index))
