@@ -29,7 +29,7 @@ def add_args(parser: argparse.ArgumentParser):
     parser.add_argument("--val_size", default=None, type=str, help="Supports both int and float number")
     parser.add_argument("--legacy_data_handling", default=False, action="store_true",
                         help="Use legacy data handling. This is for backward compatibility. Please do not use this.")
-
+    parser.add_argument("--split_frac", default = 0.8, type=float, help="The split you want to use for train/valid split, defaults to 0.8")
 
 def smart_parse_args():
     config_parser = argparse.ArgumentParser()

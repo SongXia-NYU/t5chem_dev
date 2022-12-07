@@ -19,8 +19,8 @@ def collect_files(suffix, data_dir):
 
 # Entry Point
 # Here to keep t5chems legacy behavior.
-def get_split_size(dataset):
-    train_set_size = int(len(dataset) * 0.9)
+def get_split_size(dataset, split):
+    train_set_size = int(len(dataset) * split)
     valid_set_size = len(dataset) - train_set_size
     return [train_set_size, valid_set_size]
 
@@ -42,7 +42,7 @@ def dataset_handling(tokenizer, task, args):
         # Do we split by eval? If so, we need to split the dataset
         # TODO determine if this should be an argument or if we check if val is in the files. Should we always split?
         if any("val" in s for s in list(map(os.path.basename,files))):
-            train_dataset, eval_dataset = random_split(concat_dataset, get_split_size(concat_dataset))
+            train_dataset, eval_dataset = random_split(concat_dataset, get_split_size(concat_dataset,args.split_size)
             eval_strategy = "steps"
         else:
             train_dataset = concat_dataset
@@ -166,6 +166,7 @@ def legacy_dataset_handling(tokenizer, task, args):
         eval_dataset = Subset(train_dataset, torch.as_tensor(val_index))
         train_dataset = Subset(train_dataset, torch.as_tensor(train_index))
         eval_strategy = "steps"
+    split = None
     return train_dataset, eval_dataset, eval_strategy, data_collator_padded, split
 
 def get_dataset(tokenizer, task, args):
