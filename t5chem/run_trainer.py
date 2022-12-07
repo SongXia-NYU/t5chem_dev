@@ -101,7 +101,7 @@ def train(args):
         print("Using PLTokenizer")
         added_tokens = ["<mod>", "</mod>"]
         aa_tokens = ["A", "G", "I", "L", "M", "P", "V", "F", "W", "N",
-                        "C", "Q", "S", "T", "Y", "D", "E", "R", "H", "K"]
+                     "C", "Q", "S", "T", "Y", "D", "E", "R", "H", "K"]
         # two extra capping AAs, B for ACE and J for NME
         capping_aa_tokens = ["B", "J"]
         added_tokens.extend(["<PROT>"+aa for aa in aa_tokens])
