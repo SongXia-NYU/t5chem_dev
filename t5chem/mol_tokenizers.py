@@ -234,7 +234,7 @@ class SimpleTokenizer(MolTokenizer):
         super().__init__(vocab_file=vocab_file, max_size=max_size, **kwargs)
 
     def _tokenize(self, text: str, **kwargs) -> List[str]: 
-        breakpoint()
+        #breakpoint()
         return list(text)
 
 class PLTokenizer(MolTokenizer):

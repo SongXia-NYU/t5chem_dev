@@ -5,6 +5,9 @@ t5chem/vocab/*.pt
 config-*.txt
 /train_0
 /reproduce
+/data*
+/done-slurms
+slurm*
 *.py[cod]
 
 # C extensions
