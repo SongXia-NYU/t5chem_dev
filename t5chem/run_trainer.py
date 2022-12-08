@@ -141,7 +141,7 @@ def train(args):
         dataloader_num_workers=num_workers
     )
 
-    trainer = EarlyStopTrainer(
+    trainer = T5ChemTrainer(
         t5chem_args = args,
         model=model,
         args=training_args,
