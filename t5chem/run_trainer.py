@@ -123,7 +123,7 @@ def train(args):
         compute_metrics = AccuracyMetrics
 
     n_cpu_avail, n_cpu, num_workers = solv_num_workers()
-    scheduler = get_scheduler(args.scheduler)
+    #scheduler = get_scheduler(args.scheduler)
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         overwrite_output_dir=True,
@@ -137,7 +137,8 @@ def train(args):
         save_total_limit=1,
         learning_rate=args.init_lr,
         prediction_loss_only=(compute_metrics is None),
-        dataloader_num_workers=num_workers
+        dataloader_num_workers=num_workers,
+        lr_scheduler_type=args.scheduler,
     )
 
     trainer = T5ChemTrainer(
