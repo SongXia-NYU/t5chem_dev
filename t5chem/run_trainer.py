@@ -5,10 +5,9 @@ from typing import Dict
 
 import numpy as np
 import torch
-
-from transformers import (Trainer, T5Config,
+from transformers import (Trainer, T5Config,AdamW,
                           T5ForConditionalGeneration, TrainingArguments)
-
+# import AdamW from torch
 from data_utils import (AccuracyMetrics, CalMSELoss,
                         T5ChemTasks, TaskSettings)
 from data_utils_v2 import get_dataset
@@ -124,7 +123,7 @@ def train(args):
         compute_metrics = AccuracyMetrics
 
     n_cpu_avail, n_cpu, num_workers = solv_num_workers()
-
+    scheduler = get_scheduler(args.scheduler)
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         overwrite_output_dir=True,
@@ -149,6 +148,8 @@ def train(args):
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         compute_metrics=compute_metrics,
+        optimizers=(AdamW,scheduler)
+
     )
     print(tokenizer.get_vocab())
     trainer.train()

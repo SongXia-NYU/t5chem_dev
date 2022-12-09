@@ -8,7 +8,8 @@ from transformers import DataCollatorForLanguageModeling
 from torch.utils.data import Subset, ConcatDataset, random_split
 from sklearn.model_selection import train_test_split
 
-
+def get_scheduler(scheduler):
+    return getattr(torch.optim.lr_scheduler, scheduler)
 def collect_files(suffix, data_dir):
     collected_files = []
     for root, dirs, files in os.walk(data_dir):

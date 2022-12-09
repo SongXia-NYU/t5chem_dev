@@ -233,7 +233,7 @@ class SimpleTokenizer(MolTokenizer):
     def __init__(self, vocab_file, max_size=100, **kwargs) -> None:
         super().__init__(vocab_file=vocab_file, max_size=max_size, **kwargs)
 
-    def _tokenize(self, text: str, **kwargs) -> List[str]: 
+    def _tokenize(self, text: str, **kwargs) -> List[str]:
         return list(text)
 
 class PLTokenizer(MolTokenizer):
