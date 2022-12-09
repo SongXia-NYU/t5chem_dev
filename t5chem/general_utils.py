@@ -30,6 +30,7 @@ def add_args(parser: argparse.ArgumentParser):
     parser.add_argument("--legacy_data_handling", default=False, action="store_true",
                         help="Use legacy data handling. This is for backward compatibility. Please do not use this.")
     parser.add_argument("--split_size", default = 0.8, type=float, help="The split you want to use for train/valid split, defaults to 0.8")
+    parser.add_argument("--scheduler", default="linear", type=str, help="The scheduler to use for training.Enter Pytorch Scheduler module name")
 
 def smart_parse_args():
     config_parser = argparse.ArgumentParser()

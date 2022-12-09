@@ -10,7 +10,7 @@ from transformers import (Trainer, T5Config,AdamW,
 # import AdamW from torch
 from data_utils import (AccuracyMetrics, CalMSELoss,
                         T5ChemTasks, TaskSettings)
-from data_utils_v2 import get_dataset
+from data_utils_v2 import get_dataset, get_scheduler
 from model import T5ForProperty
 from mol_tokenizers import (AtomTokenizer, MolTokenizer, PLTokenizer, SelfiesTokenizer,
                             SimpleTokenizer)
@@ -148,7 +148,7 @@ def train(args):
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         compute_metrics=compute_metrics,
-        optimizers=(AdamW,scheduler)
+        #optimizers=(AdamW,scheduler)
 
     )
     print(tokenizer.get_vocab())
