@@ -90,7 +90,7 @@ class EarlyStopTrainer(Trainer):
             prediction_loss_only if prediction_loss_only is not None else self.args.prediction_loss_only
         )
 
-        model = self.model
+        model = self._wrap_model(self.model,training=False)
 
         batch_size = dataloader.batch_size
         num_examples = self.num_examples(dataloader)
