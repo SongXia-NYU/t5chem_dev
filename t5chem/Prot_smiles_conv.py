@@ -10,10 +10,10 @@ def pick_random_partition(line):
 	if end >= len(line):
 		end = len(line) - 1
 	if start == end:
-		return pick_random_partition()
+		return pick_random_partition(line)
 	return start, end
 
-def write_mixed_file(origin_file,new_file, chance =0.25):
+def write_mixed_file(origin_file,new_file, chance=0.25):
 	file_mix_tag = open(new_file, "w")
 	lines = [line.strip() for line in open(origin_file)]
 	for line in lines:
@@ -34,6 +34,6 @@ def write_mixed_file(origin_file,new_file, chance =0.25):
 
 	print("finished")
 if __name__ == "__main__":
-	origin_file = "train_prot.txt"
-	new_file = "train_mixed_prot.txt"
+	origin_file = "/scratch/tk2801/t5chem_dev_song/t5chem_dev/data_molprot/val_prot.txt"
+	new_file = "/scratch/tk2801/t5chem_dev_song/t5chem_dev/data_molprot/val_mixed_prot.txt"
 	write_mixed_file(origin_file,new_file)
