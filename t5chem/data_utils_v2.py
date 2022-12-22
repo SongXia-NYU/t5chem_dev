@@ -8,6 +8,7 @@ from transformers import DataCollatorForLanguageModeling
 from torch.utils.data import Subset, ConcatDataset, random_split
 from sklearn.model_selection import train_test_split
 
+#TODO not actually how top get the scheduler. Needs more investigation because HF did not make this easy
 def get_scheduler(scheduler):
     return getattr(torch.optim.lr_scheduler, scheduler)
 def collect_files(suffix, data_dir):
