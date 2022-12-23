@@ -85,9 +85,9 @@ def train(args):
             decoder_start_token_id=tokenizer.pad_token_id,
             eos_token_id=tokenizer.eos_token_id,
             output_past=True,
-            num_layers=5,
-            num_heads=12,
-            d_model=320,
+            num_layers=args.num_layers,
+            num_heads=args.num_heads,
+            d_model=args.d_model,
             tokenizer=args.tokenizer,
             task_type=args.task_type,
         )

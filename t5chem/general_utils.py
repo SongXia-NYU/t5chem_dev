@@ -31,7 +31,9 @@ def add_args(parser: argparse.ArgumentParser):
                         help="Use legacy data handling. This is for backward compatibility. Please do not use this.")
     parser.add_argument("--split_size", default = 0.8, type=float, help="The split you want to use for train/valid split, defaults to 0.8")
     parser.add_argument("--scheduler", default="linear", type=str, help="The scheduler to use for training.Enter Pytorch Scheduler module name")
-
+    parser.add_argument("--num_layers", default=4, type=int, help="Number of layers in the model")
+    parser.add_argument("--num_heads", default=8, type=int, help="Number of heads in the model")
+    parser.add_argument("--d_model", default=256, type=int, help="Dimension of the model")
 def smart_parse_args():
     config_parser = argparse.ArgumentParser()
     config_parser.add_argument("--config_file")
