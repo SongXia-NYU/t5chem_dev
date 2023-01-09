@@ -107,7 +107,8 @@ def train(args):
         added_tokens.extend(["<PROT>"+aa for aa in capping_aa_tokens])
         assert len(set(added_tokens)) == len(added_tokens), added_tokens
         tokenizer.add_tokens(added_tokens)
-        model.resize_token_embeddings(len(tokenizer))
+        if args.task_type=="pretrain":
+            model.resize_token_embeddings(len(tokenizer))
 
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer.save_vocabulary(os.path.join(args.output_dir, 'vocab.pt'))

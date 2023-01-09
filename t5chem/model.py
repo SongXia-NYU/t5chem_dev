@@ -16,7 +16,7 @@ class T5ForProperty(T5ForConditionalGeneration):
         n_layer (:obj:`int`, `optional`, defaults to 0):
             The number of layers prepended to output layer.
         num_classes (:obj:`int`, `optional`, defaults to 500):
-            The number of classes used for classification task, would be ignore for 
+            The number of classes used for classification task, would be ignored for
             regression task.
     """
     _keys_to_ignore_on_load_missing: List[str] = [
