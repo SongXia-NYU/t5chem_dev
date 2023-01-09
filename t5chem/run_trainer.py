@@ -8,7 +8,7 @@ import torch
 from transformers import (Trainer, T5Config,AdamW,
                           T5ForConditionalGeneration, TrainingArguments)
 # import AdamW from torch
-from data_utils import (AccuracyMetrics, CalMSELoss,
+from data_utils import (AccuracyMetrics, CalMSELoss,MSELoss,
                         T5ChemTasks, TaskSettings)
 from data_utils_v2 import get_dataset, get_scheduler
 from model import T5ForProperty
@@ -116,7 +116,7 @@ def train(args):
     train_dataset,eval_dataset,eval_strategy, data_collator_padded,split = get_dataset(tokenizer,task,args)
 
     if task.output_layer == 'regression':
-        compute_metrics = CalMSELoss
+        compute_metrics = MSELoss
     elif args.task_type == 'pretrain':
         compute_metrics = None  
         # We don't want any extra metrics for faster pretraining

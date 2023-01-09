@@ -9,6 +9,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import Dataset
 from transformers import BatchEncoding, PreTrainedTokenizer
 from transformers.trainer_utils import PredictionOutput
+from sklearn.metrics import mean_squared_error
 
 
 class TaskSettings(NamedTuple):
@@ -151,6 +152,15 @@ def CalMSELoss(model_output: PredictionOutput) -> Dict[str, float]:
     label_ids: np.ndarray = model_output.label_ids.squeeze() # type: ignore
     loss: float = ((predictions - label_ids)**2).mean().item()
     return {'mse_loss': loss}
+
+
+def MSELoss(model_output):
+    predictions, labels = model_output
+    mse = mean_squared_error(labels, predictions, squared=False)
+    return {"mse_loss" : mse}
+
+
+
 
 def AccuracyMetrics(model_output: PredictionOutput) -> Dict[str, float]:
     label_ids: np.ndarray = model_output.label_ids # type: ignore
