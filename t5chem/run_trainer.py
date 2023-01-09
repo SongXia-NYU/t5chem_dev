@@ -96,19 +96,19 @@ def train(args):
         else:
             model = T5ForProperty(config, head_type=task.output_layer, num_classes=args.num_classes)
     
-    if args.tokenizer == "pl":
-        print("Using PLTokenizer")
-        added_tokens = ["<mod>", "</mod>"]
-        aa_tokens = ["A", "G", "I", "L", "M", "P", "V", "F", "W", "N",
-                     "C", "Q", "S", "T", "Y", "D", "E", "R", "H", "K"]
-        # two extra capping AAs, B for ACE and J for NME
-        capping_aa_tokens = ["B", "J"]
-        added_tokens.extend(["<PROT>"+aa for aa in aa_tokens])
-        added_tokens.extend(["<PROT>"+aa for aa in capping_aa_tokens])
-        assert len(set(added_tokens)) == len(added_tokens), added_tokens
-        tokenizer.add_tokens(added_tokens)
-        if args.task_type=="pretrain":
-            model.resize_token_embeddings(len(tokenizer))
+        if args.tokenizer == "pl":
+            print("Using PLTokenizer")
+            added_tokens = ["<mod>", "</mod>"]
+            aa_tokens = ["A", "G", "I", "L", "M", "P", "V", "F", "W", "N",
+                         "C", "Q", "S", "T", "Y", "D", "E", "R", "H", "K"]
+            # two extra capping AAs, B for ACE and J for NME
+            capping_aa_tokens = ["B", "J"]
+            added_tokens.extend(["<PROT>"+aa for aa in aa_tokens])
+            added_tokens.extend(["<PROT>"+aa for aa in capping_aa_tokens])
+            assert len(set(added_tokens)) == len(added_tokens), added_tokens
+            tokenizer.add_tokens(added_tokens)
+            if args.task_type=="pretrain":
+                model.resize_token_embeddings(len(tokenizer))
 
     os.makedirs(args.output_dir, exist_ok=True)
     tokenizer.save_vocabulary(os.path.join(args.output_dir, 'vocab.pt'))
