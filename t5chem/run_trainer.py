@@ -94,7 +94,7 @@ def train(args):
         if task.output_layer == 'seq2seq':
             model = T5ForConditionalGeneration(config)
         else:
-            model = T5ForProperty(config, head_type=task.output_layer, return_dict=True,num_classes=args.num_classes)
+            model = T5ForProperty(config, head_type=task.output_layer, return_dict=True, num_classes=args.num_classes)
     
     if args.tokenizer == "pl":
         print("Using PLTokenizer")

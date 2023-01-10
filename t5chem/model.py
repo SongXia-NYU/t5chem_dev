@@ -54,8 +54,13 @@ class T5ForProperty(T5ForConditionalGeneration):
                 nn.Linear(config.d_model, num_classes)
                 ])
             self.config.num_classes = num_classes # type: ignore
+        elif self.head_type == "regression":
+            lm_head_layers.extend([
+                nn.Linear(config.d_model, 1)
+
+                ])
         else:
-            assert self.head_type == "regression", \
+            assert self.head_type == "yield_regression", \
                 "Only `classification` or `regression` are currently supported for output layer"
             lm_head_layers.extend([
                 nn.Linear(config.d_model, 2),
@@ -178,6 +183,9 @@ class T5ForProperty(T5ForConditionalGeneration):
                 labels = labels.long()
                 loss = loss_fct(lm_logits, labels.view(-1))
                 lm_logits = torch.argmax(lm_logits, axis=-1)
+            elif self.head_type == "regression":
+                loss_fct = nn.MSELoss()
+                loss = loss_fct(lm_logits, labels.view(-1))
             else:
                 loss_fct = nn.KLDivLoss(reduction='batchmean')
                 smoothed_label = torch.stack([(100-labels), labels], dim=1)/100
