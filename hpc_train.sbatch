@@ -5,7 +5,7 @@
 #SBATCH --gres=gpu:a100:2
 #SBATCH --cpus-per-task=4
 #SBATCH --time=30:00:00
-#SBATCH --mem=100GB
+#SBATCH --mem=70GB
 
 CONFIG_FILE=$1
 
