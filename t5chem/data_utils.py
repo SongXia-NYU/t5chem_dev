@@ -156,7 +156,7 @@ def CalMSELoss(model_output: PredictionOutput) -> Dict[str, float]:
 
 def MSELoss(model_output):
     predictions, labels = model_output
-    mse = mean_squared_error(np.squeeze(labels), predictions[0], squared=False)
+    mse = mean_squared_error(np.squeeze(labels), predictions[0], squared=True)
     return {"mse_loss" : mse}
 
 
