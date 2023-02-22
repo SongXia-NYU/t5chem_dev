@@ -7,7 +7,6 @@ import numpy as np
 import torch
 from transformers import (Trainer, T5Config,AdamW,
                           T5ForConditionalGeneration, TrainingArguments)
-# import AdamW from torch
 from data_utils import (AccuracyMetrics, CalMSELoss,MSELoss,
                         T5ChemTasks, TaskSettings)
 from data_utils_v2 import get_dataset, get_scheduler
