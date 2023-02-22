@@ -59,6 +59,12 @@ class T5ForProperty(T5ForConditionalGeneration):
                 nn.Linear(config.d_model, 1)
 
                 ])
+        elif self.head_type == "desc_regression":
+            lm_head_layers.extend([
+                nn.Linear(config.d_model, 1),
+                nn.LogSoftmax(dim=-1)
+
+            ])
         else:
             assert self.head_type == "yield_regression", \
                 "Only `classification` or `regression` are currently supported for output layer"

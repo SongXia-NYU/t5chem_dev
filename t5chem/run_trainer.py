@@ -76,6 +76,7 @@ def train(args):
             logging.warning(warn_msg)
             args.tokenizer = 'simple'
         assert args.tokenizer in tokenizer_map.keys(), "{} tokenizer is not supported."
+        #TODO may need to be rethought here
         vocab_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vocab/'+args.vocab_name+'.pt')
         tokenizer = tokenizer_map[args.tokenizer](vocab_file=vocab_path)
         tokenizer.create_vocab()
