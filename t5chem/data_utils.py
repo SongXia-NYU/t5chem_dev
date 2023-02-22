@@ -25,6 +25,7 @@ T5ChemTasks: Dict[str, TaskSettings] = {
     'reagents': TaskSettings('Reagents:', 400, 200, 'seq2seq'),
     'classification': TaskSettings('Classification:', 500, 1, 'classification'),
     'regression': TaskSettings('Yield:', 500, 1, 'regression'),
+    'desc_regression': TaskSettings('Yield:', 500, 1, 'desc_regression'),
     'pretrain': TaskSettings('Fill-Mask:', 400, 200, 'seq2seq'),
     'mixed': TaskSettings('', 400, 300, 'seq2seq'),
     'smiles2seq': TaskSettings('SMILESToSeq:', 400, 200, 'seq2seq'),
