@@ -71,7 +71,7 @@ class T5ForProperty(T5ForConditionalGeneration):
                 nn.Linear(config.d_model, 2),
                 nn.LogSoftmax(dim=-1)
                 ])
-        self.set_output_embeddings(nn.Sequential(*lm_head_layers))
+        self.set_output_embeddings(nn.Sequential(*lm_head_layers)) # Method call (This overrides the LM head!!!)
         self.config.tie_word_embeddings = False
         self.config.head_type = self.head_type # type: ignore
         self.config.n_layer = n_layer # type: ignore

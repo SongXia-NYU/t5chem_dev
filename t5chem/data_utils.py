@@ -25,7 +25,7 @@ T5ChemTasks: Dict[str, TaskSettings] = {
     'reagents': TaskSettings('Reagents:', 400, 200, 'seq2seq'),
     'classification': TaskSettings('Classification:', 500, 1, 'classification'),
     'regression': TaskSettings('Yield:', 500, 1, 'regression'),
-    'desc_regression': TaskSettings('Yield:', 500, 1, 'desc_regression'),
+    'desc_regression': TaskSettings('Descriptors:', 500, 1, 'desc_regression'), # TODO add token
     'pretrain': TaskSettings('Fill-Mask:', 400, 200, 'seq2seq'),
     'mixed': TaskSettings('', 400, 300, 'seq2seq'),
     'smiles2seq': TaskSettings('SMILESToSeq:', 400, 200, 'seq2seq'),
@@ -104,8 +104,10 @@ class TaskPrefixDataset(Dataset):
         target_line: str = linecache.getline(self._target_path, idx + 1).strip()
         if self.sep_vocab:
             try:
-                target_value: float = float(target_line)
-                target_ids: torch.Tensor = torch.Tensor([target_value])
+                split_target_line = target_line.split(",")
+                target_values = [float(x) for x in split_target_line]
+                target_ids: torch.Tensor = torch.Tensor([target_values])
+                target_ids = target_ids.squeeze(0)
             except TypeError:
                 print("The target should be a number, \
                         not {}".format(target_line))
