@@ -1,6 +1,6 @@
 import os
 from functools import partial
-from data_utils import (LineByLineTextDataset,TaskPrefixDataset,data_collator)
+from data_utils import (LineByLineTextDataset,TaskPrefixDataset,data_collator,PropertyPretrainDataset)
 
 import torch
 import numpy as np
@@ -56,13 +56,13 @@ def dataset_handling(tokenizer, task, args):
 
 
     else: #Classification, just copied from legacy for now
-        train_dataset = TaskPrefixDataset(
+        train_dataset = PropertyPretrainDataset(
             tokenizer,
             data_dir=args.data_dir,
             prefix=task.prefix,
             max_source_length=task.max_source_length,
             max_target_length=task.max_target_length,
-            separate_vocab=(task.output_layer != 'seq2seq'),
+            #separate_vocab=(task.output_layer != 'seq2seq'),
             type_path=args.type_path,
         )
         data_collator_padded = partial(
@@ -71,7 +71,7 @@ def dataset_handling(tokenizer, task, args):
         do_eval = os.path.exists(os.path.join(args.data_dir, 'val.source'))
         if do_eval:
             eval_strategy = "steps"
-            eval_dataset = TaskPrefixDataset(
+            eval_dataset = PropertyPretrainDataset(
                 tokenizer,
                 data_dir=args.data_dir,
                 prefix=task.prefix,
@@ -98,13 +98,13 @@ def legacy_dataset_handling(tokenizer, task, args):
             tokenizer=tokenizer, mlm=True, mlm_probability=0.15
         )
     else:
-        train_dataset = TaskPrefixDataset(
+        train_dataset = PropertyPretrainDataset(
             tokenizer,
             data_dir=args.data_dir,
             prefix=task.prefix,
             max_source_length=task.max_source_length,
-            max_target_length=task.max_target_length,
-            separate_vocab=(task.output_layer != 'seq2seq'),
+            #max_target_length=task.max_target_length,
+            #separate_vocab=(task.output_layer != 'seq2seq'),
             type_path=args.type_path,
         )
         data_collator_padded = partial(
@@ -127,13 +127,13 @@ def legacy_dataset_handling(tokenizer, task, args):
         do_eval = os.path.exists(os.path.join(args.data_dir, 'val.source'))
         if do_eval:
             eval_strategy = "steps"
-            eval_dataset = TaskPrefixDataset(
+            eval_dataset = PropertyPretrainDataset(
                 tokenizer,
                 data_dir=args.data_dir,
                 prefix=task.prefix,
                 max_source_length=task.max_source_length,
-                max_target_length=task.max_target_length,
-                separate_vocab=(task.output_layer != 'seq2seq'),
+                #max_target_length=task.max_target_length,
+                #separate_vocab=(task.output_layer != 'seq2seq'),
                 type_path="val",
             )
         else:

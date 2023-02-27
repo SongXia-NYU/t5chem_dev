@@ -62,7 +62,7 @@ class T5ForProperty(T5ForConditionalGeneration):
             num_classes = num_classes if num_classes else getattr(config, "num_classes", 1)
             lm_head_layers.extend([
                 nn.Linear(config.d_model, 2*num_classes),
-                ]) # TODO revert
+                ])
             self.config.num_classes = num_classes
         self.set_output_embeddings(nn.Sequential(*lm_head_layers)) # Method call (This overrides the LM head!!!)
         self.config.tie_word_embeddings = False
@@ -186,15 +186,15 @@ class T5ForProperty(T5ForConditionalGeneration):
                 loss = loss_fct(lm_logits, labels)
             else:
                 loss_fct = nn.KLDivLoss(reduction='batchmean')
-                smoothed_label = torch.stack([(1-labels), labels], dim=-1)
-                loss = loss_fct(lm_logits, smoothed_label.view(sequence_output.size[0],-1,2))
-                lm_logits = F.log_softmax()
+                smoothed_label = torch.stack([(1 - labels), labels], dim=-1)
+                lm_logits = lm_logits.view(sequence_output.size()[0], -1, 2)
+                lm_logits = F.log_softmax(lm_logits, dim=-1)
                 loss = loss_fct(lm_logits, smoothed_label)
-                lm_logits = torch.exp(lm_logits[:,:,-1])
+                lm_logits = torch.exp(lm_logits[:, :, -1])
 
         if not return_dict:
-            output = (lm_logits,) + decoder_outputs[1:] + encoder_outputs
-            return ((loss,) + output) if loss is not None else output
+                output = (lm_logits,) + decoder_outputs[1:] + encoder_outputs
+                return ((loss,) + output) if loss is not None else output
 
         return Seq2SeqLMOutput(
             loss=loss,
