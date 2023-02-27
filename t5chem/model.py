@@ -2,6 +2,7 @@ from typing import List, Optional
 
 import torch
 from torch import nn
+import torch.nn.functional as F
 from transformers import T5Config, T5ForConditionalGeneration
 from transformers.modeling_outputs import Seq2SeqLMOutput
 
@@ -54,23 +55,15 @@ class T5ForProperty(T5ForConditionalGeneration):
                 nn.Linear(config.d_model, num_classes)
                 ])
             self.config.num_classes = num_classes # type: ignore
-        elif self.head_type == "regression":
-            lm_head_layers.extend([
-                nn.Linear(config.d_model, 1)
 
-                ])
-        elif self.head_type == "desc_regression":
-            lm_head_layers.extend([
-                nn.Linear(config.d_model, 123),
-                nn.LogSoftmax(dim=-1)
-            ])
         else:
-            assert self.head_type == "yield_regression", \
+            assert self.head_type == "regression", \
                 "Only `classification` or `regression` are currently supported for output layer"
+            num_classes = num_classes if num_classes else getattr(config, "num_classes", 1)
             lm_head_layers.extend([
-                nn.Linear(config.d_model, 2),
-                nn.LogSoftmax(dim=-1)
-                ])
+                nn.Linear(config.d_model, 2*num_classes),
+                ]) # TODO revert
+            self.config.num_classes = num_classes
         self.set_output_embeddings(nn.Sequential(*lm_head_layers)) # Method call (This overrides the LM head!!!)
         self.config.tie_word_embeddings = False
         self.config.head_type = self.head_type # type: ignore
@@ -188,14 +181,16 @@ class T5ForProperty(T5ForConditionalGeneration):
                 labels = labels.long()
                 loss = loss_fct(lm_logits, labels.view(-1))
                 lm_logits = torch.argmax(lm_logits, axis=-1)
-            elif self.head_type == "regression":
+            elif self.head_type == "regression": # TODO revert
                 loss_fct = nn.MSELoss()
                 loss = loss_fct(lm_logits, labels)
             else:
                 loss_fct = nn.KLDivLoss(reduction='batchmean')
-                smoothed_label = torch.stack([(100-labels), labels], dim=1)/100
-                loss = loss_fct(lm_logits, smoothed_label.view(-1,2))
-                lm_logits = torch.exp(lm_logits[:,-1])*100
+                smoothed_label = torch.stack([(1-labels), labels], dim=-1)
+                loss = loss_fct(lm_logits, smoothed_label.view(sequence_output.size[0],-1,2))
+                lm_logits = F.log_softmax()
+                loss = loss_fct(lm_logits, smoothed_label)
+                lm_logits = torch.exp(lm_logits[:,:,-1])
 
         if not return_dict:
             output = (lm_logits,) + decoder_outputs[1:] + encoder_outputs

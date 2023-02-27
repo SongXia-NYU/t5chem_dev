@@ -2,7 +2,7 @@ import linecache
 import os
 import subprocess
 from typing import Dict, List, NamedTuple
-
+from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 import torch
 from torch.nn.utils.rnn import pad_sequence
@@ -10,7 +10,7 @@ from torch.utils.data import Dataset
 from transformers import BatchEncoding, PreTrainedTokenizer
 from transformers.trainer_utils import PredictionOutput
 from sklearn.metrics import mean_squared_error
-
+import h5py
 
 class TaskSettings(NamedTuple):
     prefix: str
@@ -129,11 +129,67 @@ class TaskPrefixDataset(Dataset):
     def sort_key(self, ex: BatchEncoding) -> int:
         """ Sort using length of source sentences. """
         return len(ex['input_ids'])
+class PropertyPretrainDataset(Dataset):
+    def __init__(
+        self,
+        tokenizer: PreTrainedTokenizer,
+        data_dir: str,
+        prefix: str='',
+        type_path: str="train",
+        max_source_length: int=300,
+    ) -> None:
+        super().__init__()
+
+        self.prefix: str = prefix
+        self._source_path: str = os.path.join(data_dir, type_path + ".source")
+        self._target_path: str = os.path.join(data_dir, type_path + ".hdf5")
+        self.tokenizer: PreTrainedTokenizer = tokenizer
+        self.max_source_len: int = max_source_length
+        self.h5py_file = h5py.File(self._target_path, "r")
+        self.targets = self.h5py_file['dataset']
+
+    def __len__(self) -> int:
+        return len(self.targets)
+
+    def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
+        source_line: str = linecache.getline(self._source_path, idx + 1).strip()
+        source_sample: BatchEncoding = self.tokenizer(
+                        self.prefix+source_line,
+                        max_length=self.max_source_len,
+                        padding="do_not_pad",
+                        truncation=True,
+                        return_tensors='pt',
+                    )
+        target_ids: torch.Tensor = torch.from_numpy(self.targets[idx]).to(torch.FloatTensor())
+        source_ids: torch.Tensor = source_sample["input_ids"].squeeze(0)
+        src_mask: torch.Tensor = source_sample["attention_mask"].squeeze(0)
+        return {"input_ids": source_ids, "attention_mask": src_mask,
+                "decoder_input_ids": target_ids}
+
+    def __del__(self):
+        self.h5py_file.close()
+
+    def sort_key(self, ex: BatchEncoding) -> int:
+        """ Sort using length of source sentences. """
+        return len(ex['input_ids'])
 
 
-#Need to understand this code
-#TODO move away from this
-def data_collator(batch: List[BatchEncoding], pad_token_id: int) -> Dict[str, torch.Tensor]:
+# def data_collator(batch: List[BatchEncoding], pad_token_id: int) -> Dict[str, torch.Tensor]:
+#     whole_batch: Dict[str, torch.Tensor] = {}
+#     ex: BatchEncoding = batch[0]
+#     for key in ex.keys():
+#         if 'mask' in key:
+#             padding_value = 0
+#         else:
+#             padding_value = pad_token_id
+#         whole_batch[key] = pad_sequence([x[key] for x in batch],
+#                                         batch_first=True,
+#                                         padding_value=padding_value)
+#     source_ids, source_mask, y = \
+#         whole_batch["input_ids"], whole_batch["attention_mask"], whole_batch["decoder_input_ids"]
+#     return {'input_ids': source_ids, 'attention_mask': source_mask,
+#             'labels': y}
+def data_collator(batch: List[BatchEncoding], pad_token_id: int, normalize: [MinMaxScaler] = None) -> Dict[str, torch.Tensor]:
     whole_batch: Dict[str, torch.Tensor] = {}
     ex: BatchEncoding = batch[0]
     for key in ex.keys():
@@ -146,6 +202,8 @@ def data_collator(batch: List[BatchEncoding], pad_token_id: int) -> Dict[str, to
                                         padding_value=padding_value)
     source_ids, source_mask, y = \
         whole_batch["input_ids"], whole_batch["attention_mask"], whole_batch["decoder_input_ids"]
+    if normalize:
+        y = torch.from_numpy(normalize.transform(y)).to(y)
     return {'input_ids': source_ids, 'attention_mask': source_mask,
             'labels': y}
 

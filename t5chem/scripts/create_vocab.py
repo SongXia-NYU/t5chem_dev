@@ -1,11 +1,11 @@
 import copy
 import re
 from typing import List, Set
-from mol_tokenizers import SimpleTokenizer, PLTokenizer
+from t5chem_dev.t5chem.mol_tokenizers import SimpleTokenizer, PLTokenizer
 
 
 def create_vocab():
-    tokenizer = ModToekenizer(None, source_files = "/scratch/sx801/scripts/t5chem_dev/data/smiles_train_0/train.txt", additional_special_tokens=("<mod>", "</mod>"))
+    tokenizer = SimpleTokenizer(None, source_files = "/scratch/sx801/scripts/t5chem_dev/data/smiles_train_0/train.txt", additional_special_tokens=("<mod>", "</mod>"))
     tokenizer.create_vocab()
     tokenizer.save_vocabulary("/scratch/sx801/scripts/t5chem_dev/t5chem/vocab/mol_tag_simple.pt")
 
