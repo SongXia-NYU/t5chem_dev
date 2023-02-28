@@ -181,9 +181,6 @@ class T5ForProperty(T5ForConditionalGeneration):
                 labels = labels.long()
                 loss = loss_fct(lm_logits, labels.view(-1))
                 lm_logits = torch.argmax(lm_logits, axis=-1)
-            elif self.head_type == "regression": # TODO revert
-                loss_fct = nn.MSELoss()
-                loss = loss_fct(lm_logits, labels)
             else:
                 loss_fct = nn.KLDivLoss(reduction='batchmean')
                 smoothed_label = torch.stack([(1 - labels), labels], dim=-1)
