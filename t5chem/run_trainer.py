@@ -48,6 +48,7 @@ def train(args):
             model = T5ForProperty.from_pretrained(
                 args.pretrained_model, 
                 head_type = task.output_layer,
+                num_classes=args.num_classes
             )
         if not args.tokenizer:
             if not hasattr(model.config, 'tokenizer'):
@@ -141,7 +142,6 @@ def train(args):
         dataloader_num_workers=num_workers,
         lr_scheduler_type=args.scheduler,
     )
-
     trainer = T5ChemTrainer(
         t5chem_args = args,
         model=model,
