@@ -156,7 +156,7 @@ class T5ForProperty(T5ForConditionalGeneration):
             return_dict=return_dict,
         )
 
-        sequence_output = decoder_outputs[0]
+        sequence_output = decoder_outputs[0] # Regression [B,1,dmodel]
 
         # Set device for model parallelism
         if self.model_parallel:
@@ -169,7 +169,7 @@ class T5ForProperty(T5ForConditionalGeneration):
             # See https://github.com/tensorflow/mesh/blob/fa19d69eafc9a482aff0b59ddd96b025c0cb207d/mesh_tensorflow/transformer/transformer.py#L586
             sequence_output = sequence_output * (self.model_dim ** -0.5)
         if self.lm_head:
-            lm_logits = self.lm_head(sequence_output.view(sequence_output.size()[0], -1))
+            lm_logits = self.lm_head(sequence_output.view(sequence_output.size()[0], -1)) #View [B,1,dmodel] -> [B,dmodel] -> [B,246]
         else:
             lm_logits = sequence_output.view(sequence_output.size()[0], -1)
             labels = None
@@ -183,11 +183,11 @@ class T5ForProperty(T5ForConditionalGeneration):
                 lm_logits = torch.argmax(lm_logits, axis=-1)
             else:
                 loss_fct = nn.KLDivLoss(reduction='batchmean')
-                smoothed_label = torch.stack([(1 - labels), labels], dim=-1)
-                lm_logits = lm_logits.view(sequence_output.size()[0], -1, 2)
+                smoothed_label = torch.stack([(1 - labels), labels], dim=-1) #[B,num_class,2]
+                lm_logits = lm_logits.view(sequence_output.size()[0], -1, 2) #Same as smoothed labels
                 lm_logits = F.log_softmax(lm_logits, dim=-1)
                 loss = loss_fct(lm_logits, smoothed_label)
-                lm_logits = torch.exp(lm_logits[:, :, -1])
+                lm_logits = torch.exp(lm_logits[:, :, -1]) # --> [B,num_class] # target!)
 
         if not return_dict:
                 output = (lm_logits,) + decoder_outputs[1:] + encoder_outputs

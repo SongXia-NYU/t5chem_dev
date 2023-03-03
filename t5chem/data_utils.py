@@ -5,6 +5,7 @@ from typing import Dict, List, NamedTuple
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 import torch
+import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import Dataset
 from transformers import BatchEncoding, PreTrainedTokenizer
@@ -219,6 +220,13 @@ def MSELoss(model_output):
     predictions, labels = model_output
     mse = mean_squared_error(np.squeeze(labels), predictions[0], squared=True)
     return {"mse_loss" : mse}
+
+def MSELossDim(model_output):
+    predictions, labels = model_output
+    loss = nn.MSELoss(reduction='none')
+    loss_result = torch.sum(loss(predictions, labels), dim=0)
+    return {"mse_loss": loss_result}
+
 
 
 
